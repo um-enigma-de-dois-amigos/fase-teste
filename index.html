@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>animal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #111111;
+      color: #f0ece4;
+      font-family: Baskerville, 'Palatino Linotype', Palatino, 'Times New Roman', serif;
+      min-height: 100vh;
+    }
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .site-title {
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #c8c0b0;
+    }
+    main {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .fase-label {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 32px;
+    }
+    .image-area {
+      width: 100%;
+      max-width: 480px;
+      min-height: 520px;
+      background-color: #1c1c1c;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 36px;
+      overflow: hidden;
+    }
+    .image-area img {
+      max-width: 100%;
+      max-height: 520px;
+      display: block;
+      object-fit: contain;
+    }
+    .riddle-text {
+      font-size: 19px;
+      line-height: 1.85;
+      text-align: center;
+      color: #e8e2d6;
+      max-width: 520px;
+      margin-bottom: 48px;
+    }
+    .btn-responder {
+      background: transparent;
+      color: #c8c0b0;
+      border: 1px solid #444;
+      padding: 12px 40px;
+      font-family: Baskerville, serif;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn-responder:hover { background: #c8c0b0; color: #111; border-color: #c8c0b0; }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 40px 36px 32px;
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .modal-box h2 { font-size: 16px; font-weight: 400; letter-spacing: 0.06em; color: #c8c0b0; text-align: center; }
+    .modal-box input[type="text"] {
+      background: #111;
+      border: 1px solid #333;
+      color: #f0ece4;
+      font-family: Baskerville, serif;
+      font-size: 16px;
+      padding: 10px 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .modal-box input[type="text"]:focus { border-color: #666; }
+    .modal-box input[type="text"]::placeholder { color: #444; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .btn-cancelar {
+      background: transparent; border: 1px solid #333; color: #666;
+      font-family: Baskerville, serif; font-size: 14px; padding: 8px 20px; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-cancelar:hover { border-color: #666; color: #aaa; }
+    .btn-confirmar {
+      background: #c8c0b0; border: 1px solid #c8c0b0; color: #111;
+      font-family: Baskerville, serif; font-size: 14px; padding: 8px 24px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-confirmar:hover { background: #ddd5c5; }
+    .modal-erro { color: #cc6655; font-size: 13px; text-align: center; min-height: 18px; letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="site-title">um enigma de dois amigos</span>
+  </header>
+
+  <main>
+    <p class="fase-label">fase teste</p>
+
+    <div class="image-area">
+      <img src="pata.png" alt="Imagem do enigma" />
+    </div>
+
+    <p class="riddle-text">doméstico</p>
+
+    <button class="btn-responder" onclick="abrirModal()">Responda</button>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay" onclick="fecharModalFora(event)">
+    <div class="modal-box">
+      <h2>Digite a resposta</h2>
+      <input type="text" id="campoResposta" placeholder="sua resposta..."
+        onkeydown="if(event.key==='Enter') verificarResposta()" />
+      <p class="modal-erro" id="msgErro"></p>
+      <div class="modal-actions">
+        <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-confirmar" onclick="verificarResposta()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const RESPOSTA_CORRETA = "cachorro";
+    const URL_PROXIMA_FASE = "https://6a2c85dd88b83f31c7083d5d--um-enigma-de-dois-amigos.netlify.app";
+
+    function abrirModal() {
+      document.getElementById("modalOverlay").classList.add("active");
+      document.getElementById("campoResposta").value = "";
+      document.getElementById("msgErro").textContent = "";
+      setTimeout(() => document.getElementById("campoResposta").focus(), 50);
+    }
+    function fecharModal() {
+      document.getElementById("modalOverlay").classList.remove("active");
+      document.getElementById("msgErro").textContent = "";
+    }
+    function fecharModalFora(event) {
+      if (event.target === document.getElementById("modalOverlay")) fecharModal();
+    }
+    function verificarResposta() {
+      const campo = document.getElementById("campoResposta");
+      const resposta = campo.value.trim().toLowerCase();
+      if (resposta === "") {
+        document.getElementById("msgErro").textContent = "Esse campo não pode ficar em branco.";
+        return;
+      }
+      if (resposta === RESPOSTA_CORRETA.toLowerCase()) {
+        window.location.href = URL_PROXIMA_FASE;
+      } else {
+        document.getElementById("msgErro").textContent = "Resposta errada. Tente novamente.";
+        campo.select();
+      }
+    }
+  </script>
+
+</body>
+</html>
